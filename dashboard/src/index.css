@@ -1,0 +1,89 @@
+:root {
+  --bg-deepest: #0a0c0f;
+  --bg-dark: #0f1215;
+  --bg-card: #141a1f;
+  --bg-card-hover: #1a2228;
+  --border: #1e2d38;
+  --border-glow: #2a4a5e;
+  --text-primary: #e8f4f8;
+  --text-secondary: #7fa8b8;
+  --text-muted: #3d5c6e;
+  --accent-green: #4ade80;
+  --accent-green-dark: #166534;
+  --accent-yellow: #fbbf24;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  --accent-blue: #38bdf8;
+  --dirt-brown: #8B5E3C;
+  --pixel-font: 'Press Start 2P', monospace;
+  --body-font: 'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--body-font);
+  background: var(--bg-deepest);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay for atmosphere */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+button {
+  font-family: var(--body-font);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, select, textarea {
+  font-family: var(--body-font);
+  outline: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+  50% { box-shadow: 0 0 20px rgba(239,68,68,0.8), 0 0 40px rgba(239,68,68,0.3); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

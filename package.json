@@ -1,0 +1,12 @@
+{
+  "name": "minecraft-cell-manager",
+  "private": true,
+  "workspaces": ["backend", "dashboard", "bot"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=dashboard\" \"npm run dev --workspace=bot\"",
+    "install:all": "npm install && npm install --workspace=backend && npm install --workspace=dashboard && npm install --workspace=bot"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
