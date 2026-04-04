@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("update_days")
+    .setName("ce_update_days")
     .setDescription("Update days left for a cell")
     .addStringOption((o) => o.setName("cell_name").setDescription("Name of the cell").setRequired(true))
     .addIntegerOption((o) =>

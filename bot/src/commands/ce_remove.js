@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("remove_cell")
+    .setName("ce_remove")
     .setDescription("Remove a Minecraft cell")
     .addStringOption((o) => o.setName("cell_name").setDescription("Name of the cell to remove").setRequired(true)),
 

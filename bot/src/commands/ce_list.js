@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("list_cells")
+    .setName("ce_list")
     .setDescription("Show all cells as embeds in this channel"),
 
   async execute(interaction) {
