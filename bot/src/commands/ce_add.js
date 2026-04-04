@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("add_cell")
+    .setName("ce_add")
     .setDescription("Add a new Minecraft cell")
     .addStringOption((o) => o.setName("cell_name").setDescription("Name of the cell").setRequired(true))
     .addStringOption((o) => o.setName("account_name").setDescription("Minecraft username").setRequired(true))
