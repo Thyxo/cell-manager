@@ -5,10 +5,10 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("ce_add")
     .setDescription("Add a new Minecraft cell")
-    .addStringOption((o) => o.setName("cell_name").setDescription("Name of the cell").setRequired(true))
+    .addStringOption((o) => o.setName("cell_name").setDescription("Cell number").setRequired(true))
     .addStringOption((o) => o.setName("account_name").setDescription("Minecraft username").setRequired(true))
     .addStringOption((o) => o.setName("rank").setDescription("Player rank").setRequired(true))
-    .addStringOption((o) => o.setName("block").setDescription("Block identifier").setRequired(true))
+    .addStringOption((o) => o.setName("block").setDescription("FV Blok").setRequired(true))
     .addIntegerOption((o) =>
       o.setName("days").setDescription("Days left (0-9)").setRequired(true).setMinValue(0).setMaxValue(9)
     )

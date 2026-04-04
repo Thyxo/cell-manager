@@ -5,7 +5,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("ce_remove")
     .setDescription("Remove a Minecraft cell")
-    .addStringOption((o) => o.setName("cell_name").setDescription("Name of the cell to remove").setRequired(true)),
+    .addStringOption((o) => o.setName("cell_name").setDescription("Cell number of the cell to remove").setRequired(true)),
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
