@@ -5,7 +5,8 @@ let intervalId = null;
 let liveChannelId = null;
 let liveMessageId = null;
 
-async function buildEmbeds(backendUrl) {
+async function buildEmbeds() {
+  const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
   const res = await fetch(`${backendUrl}/api/cells`);
   const cells = await res.json();
 
@@ -37,13 +38,13 @@ async function buildEmbeds(backendUrl) {
   });
 }
 
-async function updateLiveMessage(client, backendUrl) {
+async function updateLiveMessage(client) {
   if (!liveChannelId || !liveMessageId) return;
 
   try {
     const channel = await client.channels.fetch(liveChannelId);
     const message = await channel.messages.fetch(liveMessageId);
-    const embeds = await buildEmbeds(backendUrl);
+    const embeds = await buildEmbeds();
 
     if (!embeds) {
       await message.edit({ content: "📭 Ingen celler registreret.", embeds: [] });
@@ -65,31 +66,25 @@ module.exports = {
   async execute(interaction, client) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
-
     try {
-      const embeds = await buildEmbeds(backendUrl);
+      const embeds = await buildEmbeds();
       const channel = interaction.channel;
 
-      // Send den første besked
       const message = await channel.send({
         content: "",
         embeds: embeds || [],
       });
 
-      // Gem kanal og besked ID
       liveChannelId = channel.id;
       liveMessageId = message.id;
 
-      // Stop gammelt interval hvis det kører
       if (intervalId) {
         clearInterval(intervalId);
       }
 
-      // Start nyt interval — 12 timer
       const TWELVE_HOURS = 12 * 60 * 60 * 1000;
       intervalId = setInterval(() => {
-        updateLiveMessage(client, backendUrl);
+        updateLiveMessage(client);
       }, TWELVE_HOURS);
 
       await interaction.editReply({
