@@ -10,6 +10,7 @@ const cellSchema = new mongoose.Schema(
     discordUser: { type: String, required: true, trim: true }, // Discord user ID or mention
     discordUserId: { type: String, trim: true }, // raw Discord user ID for DMs
     notified: { type: Boolean, default: false }, // has notification been sent?
+    lastNotified: { type: Date, default: null }, // timestamp of last notification
   },
   { timestamps: true }
 );

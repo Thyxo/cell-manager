@@ -47,7 +47,7 @@ router.patch("/:cellName/days", async (req, res) => {
     }
     const cell = await Cell.findOneAndUpdate(
       { cellName: req.params.cellName },
-      { daysLeft, notified: false },
+      { daysLeft, notified: false, lastNotified: null },
       { new: true }
     );
     if (!cell) return res.status(404).json({ error: "Cell not found" });
@@ -59,12 +59,32 @@ router.patch("/:cellName/days", async (req, res) => {
   }
 });
 
-// PUT update full cell
-router.put("/:cellName", async (req, res) => {
+// PATCH mark cell as notified (no socket emit — prevents notification loop)
+router.patch("/:cellName/notified", async (req, res) => {
   try {
     const cell = await Cell.findOneAndUpdate(
       { cellName: req.params.cellName },
-      { ...req.body, notified: false },
+      { notified: true, lastNotified: new Date() },
+      { new: true }
+    );
+    if (!cell) return res.status(404).json({ error: "Cell not found" });
+    res.json(cell);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update full cell
+router.put("/:cellName", async (req, res) => {
+  try {
+    // When editing a cell's real data, reset notified so user gets warned again if still urgent
+    const update = { ...req.body };
+    if (update.daysLeft !== undefined) {
+      update.notified = false;
+    }
+    const cell = await Cell.findOneAndUpdate(
+      { cellName: req.params.cellName },
+      update,
       { new: true, runValidators: true }
     );
     if (!cell) return res.status(404).json({ error: "Cell not found" });

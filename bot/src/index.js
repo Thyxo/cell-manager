@@ -46,7 +46,14 @@ socket.on("cells:updated", async (cells) => {
 });
 
 // Notification check logic
+const NOTIFICATION_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
+let isProcessingNotifications = false;
+
 async function checkNotifications(cells) {
+  // Guard against re-entrant calls (socket events can fire rapidly)
+  if (isProcessingNotifications) return;
+  isProcessingNotifications = true;
+
   try {
     const configRes = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/config`);
     const config = await configRes.json();
@@ -55,37 +62,42 @@ async function checkNotifications(cells) {
     const channelId = config.notificationChannelId;
 
     for (const cell of cells) {
-      if (cell.daysLeft <= threshold && !cell.notified && cell.discordUserId) {
-        try {
-          if (mode === "dm") {
-            const user = await client.users.fetch(cell.discordUserId);
-            await user.send({
-              embeds: [buildNotificationEmbed(cell)],
-            });
-          } else if (mode === "channel" && channelId) {
-            const channel = await client.channels.fetch(channelId);
-            await channel.send({
-              content: `<@${cell.discordUserId}>`,
-              embeds: [buildNotificationEmbed(cell)],
-            });
-          }
-          // Mark as notified
-          await fetch(
-            `${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells/${encodeURIComponent(cell.cellName)}`,
-            {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...cell, notified: true }),
-            }
-          );
-          console.log(`📨 Notified ${cell.discordUserId} for cell ${cell.cellName}`);
-        } catch (e) {
-          console.error(`Failed to notify for ${cell.cellName}:`, e.message);
+      if (cell.daysLeft > threshold) continue;
+      if (!cell.discordUserId) continue;
+
+      // Check cooldown — skip if notified less than 5 hours ago
+      if (cell.lastNotified) {
+        const elapsed = Date.now() - new Date(cell.lastNotified).getTime();
+        if (elapsed < NOTIFICATION_COOLDOWN_MS) continue;
+      }
+
+      try {
+        if (mode === "dm") {
+          const user = await client.users.fetch(cell.discordUserId);
+          await user.send({
+            embeds: [buildNotificationEmbed(cell)],
+          });
+        } else if (mode === "channel" && channelId) {
+          const channel = await client.channels.fetch(channelId);
+          await channel.send({
+            content: `<@${cell.discordUserId}>`,
+            embeds: [buildNotificationEmbed(cell)],
+          });
         }
+        // Mark as notified using the dedicated endpoint (no socket emit, no data overwrite)
+        await fetch(
+          `${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells/${encodeURIComponent(cell.cellName)}/notified`,
+          { method: "PATCH" }
+        );
+        console.log(`📨 Notified ${cell.discordUserId} for cell ${cell.cellName}`);
+      } catch (e) {
+        console.error(`Failed to notify for ${cell.cellName}:`, e.message);
       }
     }
   } catch (err) {
     console.error("Notification check error:", err.message);
+  } finally {
+    isProcessingNotifications = false;
   }
 }
 
@@ -98,10 +110,10 @@ function buildNotificationEmbed(cell) {
     .setThumbnail(`https://mc-heads.net/avatar/${cell.accountName}`)
     .setDescription(
       `Your Minecraft cell is expiring!\n\n` +
-        `**Account:** ${cell.accountName}\n` +
-        `**Rank:** ${cell.rank}\n` +
-        `**Block:** ${cell.block}\n` +
-        `**Days Left:** ${cell.daysLeft} ${cell.daysLeft === 1 ? "day" : "days"} ⏰`
+      `**Account:** ${cell.accountName}\n` +
+      `**Rank:** ${cell.rank}\n` +
+      `**Block:** ${cell.block}\n` +
+      `**Days Left:** ${cell.daysLeft} ${cell.daysLeft === 1 ? "day" : "days"} ⏰`
     )
     .setFooter({ text: "Minecraft Cell Manager" })
     .setTimestamp();
