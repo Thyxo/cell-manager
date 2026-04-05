@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const fetch = require("node-fetch");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
     .addStringOption((o) => o.setName("cell_name").setDescription("Cell number of the cell to remove").setRequired(true)),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const cellName = interaction.options.getString("cell_name");
 

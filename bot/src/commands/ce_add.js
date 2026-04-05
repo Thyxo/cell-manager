@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const fetch = require("node-fetch");
 
 module.exports = {
@@ -15,7 +15,7 @@ module.exports = {
     .addUserOption((o) => o.setName("discord_user").setDescription("Discord user to notify").setRequired(true)),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const cellName = interaction.options.getString("cell_name");
     const accountName = interaction.options.getString("account_name");

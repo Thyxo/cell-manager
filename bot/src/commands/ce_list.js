@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const fetch = require("node-fetch");
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
     .setDescription("Show all cells as embeds in this channel"),
 
   async execute(interaction) {
-    await interaction.deferReply();
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
       const res = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells`);
