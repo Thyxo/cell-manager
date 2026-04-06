@@ -7,8 +7,6 @@ module.exports = {
         .setDescription('Sender en guide til hvordan Celle-Manager systemet fungerer'),
 
     async execute(interaction) {
-        // Vi bruger path.join med __dirname for at få den relative sti.
-        // Dette gør, at botten kan finde billedet lige meget hvilken computer eller server den kører på (f.eks. efter den er lagt på GitHub).
         const imagePath = path.join(__dirname, 'Dashboard.png');
         const file = new AttachmentBuilder(imagePath, { name: 'Dashboard.png' });
 
@@ -45,6 +43,11 @@ module.exports = {
                     value: "Den sender en liste over alle cellerne hver 12. time i den kanal som kommandoen blev skrevet i. Skal ikke bruges.",
                     inline: false
                 },
+                {
+                    name: "/ce_guide",
+                    value: "Sender denne besked, som du læser lige nu. Skal ikke bruges.",
+                    inline: false
+                },
             )
             .setImage("attachment://Dashboard.png")
             .setColor("#00b0f4")
@@ -53,7 +56,6 @@ module.exports = {
             })
             .setTimestamp();
 
-        // Vi sender embed og det vedhæftede billede som ét svar
         await interaction.reply({ embeds: [embed], files: [file] });
     }
 };
