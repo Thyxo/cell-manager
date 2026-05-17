@@ -48,14 +48,23 @@ socket.on("cells:updated", async (cells) => {
 // Notification check logic
 const NOTIFICATION_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
 let isProcessingNotifications = false;
+let pendingNotificationCheck = false;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function checkNotifications(cells) {
   // Guard against re-entrant calls (socket events can fire rapidly)
-  if (isProcessingNotifications) return;
+  if (isProcessingNotifications) {
+    pendingNotificationCheck = true;
+    return;
+  }
   isProcessingNotifications = true;
 
   try {
-    const configRes = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/config`);
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
+    const configRes = await fetch(`${backendUrl}/api/config`);
     const config = await configRes.json();
     const threshold = config.notificationThreshold ?? 2;
     const mode = config.notificationMode ?? "dm";
@@ -64,6 +73,9 @@ async function checkNotifications(cells) {
     for (const cell of cells) {
       if (cell.daysLeft > threshold) continue;
       if (!cell.discordUserId) continue;
+
+      // Skip cells that are already marked as notified
+      if (cell.notified) continue;
 
       // Check cooldown — skip if notified less than 5 hours ago
       if (cell.lastNotified) {
@@ -86,18 +98,33 @@ async function checkNotifications(cells) {
         }
         // Mark as notified using the dedicated endpoint (no socket emit, no data overwrite)
         await fetch(
-          `${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells/${encodeURIComponent(cell.cellName)}/notified`,
+          `${backendUrl}/api/cells/${encodeURIComponent(cell.cellName)}/notified`,
           { method: "PATCH" }
         );
         console.log(`📨 Notified ${cell.discordUserId} for cell ${cell.cellName}`);
       } catch (e) {
         console.error(`Failed to notify for ${cell.cellName}:`, e.message);
       }
+
+      // Rate-limit: wait 1.5s between Discord API calls to avoid hitting limits
+      await sleep(1500);
     }
   } catch (err) {
     console.error("Notification check error:", err.message);
   } finally {
     isProcessingNotifications = false;
+
+    // If another socket event fired while we were processing, re-run with fresh data
+    if (pendingNotificationCheck) {
+      pendingNotificationCheck = false;
+      try {
+        const res = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells`);
+        const freshCells = await res.json();
+        await checkNotifications(freshCells);
+      } catch (e) {
+        console.error("Failed to re-check notifications:", e.message);
+      }
+    }
   }
 }
 

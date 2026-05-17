@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 
 const RANKS = ['Ingen', 'Madchemist', 'Legend', 'Titan']
@@ -11,10 +11,40 @@ export default function AddCellModal({ onClose, onSuccess }) {
     block: '',
     daysLeft: 9,
     discordUser: '',
-    discordUserId: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [lookupStatus, setLookupStatus] = useState('idle') // idle, loading, success, not_found, error
+  const [resolvedUser, setResolvedUser] = useState(null)
+
+  useEffect(() => {
+    const username = form.discordUser.trim().replace(/^@/, '');
+    if (!username) {
+      setLookupStatus('idle');
+      setResolvedUser(null);
+      return;
+    }
+
+    setLookupStatus('loading');
+    setResolvedUser(null);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.lookupDiscordUser(username);
+        if (res.found && res.users.length > 0) {
+          setLookupStatus('success');
+          setResolvedUser(res.users[0]);
+        } else {
+          setLookupStatus('not_found');
+        }
+      } catch (err) {
+        console.error('Lookup failed', err);
+        setLookupStatus('error');
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [form.discordUser]);
 
   function set(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -25,9 +55,17 @@ export default function AddCellModal({ onClose, onSuccess }) {
     if (!form.cellName || !form.accountName || !form.rank || !form.block || !form.discordUser) {
       return setError('All fields are required.')
     }
+    if (!resolvedUser) {
+      return setError('Please enter a valid Discord username that exists in the server.')
+    }
     setLoading(true)
     try {
-      await api.createCell(form)
+      const payload = {
+        ...form,
+        discordUser: `<@${resolvedUser.id}>`,
+        discordUserId: resolvedUser.id
+      }
+      await api.createCell(payload)
       onSuccess()
       onClose()
     } catch (e) {
@@ -121,11 +159,26 @@ export default function AddCellModal({ onClose, onSuccess }) {
               </span>
             </div>
           </Row>
-          <Row label="Discord @">
-            <Input value={form.discordUser} onChange={v => set('discordUser', v)} placeholder="e.g. @username" />
-          </Row>
-          <Row label="Discord ID">
-            <Input value={form.discordUserId} onChange={v => set('discordUserId', v)} placeholder="e.g. 123456789012345678" />
+          <Row label="Discord Username">
+            <div style={{ position: 'relative' }}>
+              <Input value={form.discordUser} onChange={v => set('discordUser', v)} placeholder="e.g. username" />
+              <div style={{
+                position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                fontSize: '12px'
+              }}>
+                {lookupStatus === 'loading' && '⏳'}
+                {lookupStatus === 'success' && '✅'}
+                {lookupStatus === 'not_found' && '❌'}
+                {lookupStatus === 'error' && '⚠️'}
+              </div>
+            </div>
+            {resolvedUser && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', padding: '6px', background: 'var(--bg-dark)', borderRadius: '4px' }}>
+                <img src={resolvedUser.avatar} alt="avatar" width="20" height="20" style={{ borderRadius: '50%' }} />
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{resolvedUser.displayName}</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>({resolvedUser.id})</span>
+              </div>
+            )}
           </Row>
 
           {error && (

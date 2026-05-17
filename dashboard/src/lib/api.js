@@ -22,4 +22,5 @@ export const api = {
     request(`/cells/${encodeURIComponent(cellName)}`, { method: 'DELETE' }),
   getConfig: () => request('/config'),
   updateConfig: (payload) => request('/config', { method: 'PUT', body: payload }),
+  lookupDiscordUser: (username) => request(`/discord/lookup?username=${encodeURIComponent(username)}`),
 }
