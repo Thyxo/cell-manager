@@ -36,7 +36,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-// Socket.IO — listen for live cell updates → check notifications
+// Socket.IO - listen for live cell updates and check notifications
 let socket = null;
 try {
   socket = io(getBackendUrl());
@@ -55,10 +55,18 @@ if (socket) {
 // Notification check logic
 const NOTIFICATION_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
 let isProcessingNotifications = false;
+let pendingNotificationCheck = false;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function checkNotifications(cells) {
   // Guard against re-entrant calls (socket events can fire rapidly)
-  if (isProcessingNotifications) return;
+  if (isProcessingNotifications) {
+    pendingNotificationCheck = true;
+    return;
+  }
   isProcessingNotifications = true;
 
   try {
@@ -70,8 +78,9 @@ async function checkNotifications(cells) {
     for (const cell of cells) {
       if (cell.daysLeft > threshold) continue;
       if (!cell.discordUserId) continue;
+      if (cell.notified) continue;
 
-      // Check cooldown — skip if notified less than 5 hours ago
+      // Check cooldown - skip if notified less than 5 hours ago
       if (cell.lastNotified) {
         const elapsed = Date.now() - new Date(cell.lastNotified).getTime();
         if (elapsed < NOTIFICATION_COOLDOWN_MS) continue;
@@ -96,11 +105,25 @@ async function checkNotifications(cells) {
       } catch (e) {
         console.error(`Failed to notify for ${cell.cellName}:`, e.message);
       }
+
+      // Rate-limit: wait 1.5s between Discord API calls to avoid hitting limits
+      await sleep(1500);
     }
   } catch (err) {
     console.error("Notification check error:", err.message);
   } finally {
     isProcessingNotifications = false;
+
+    // If another socket event fired while we were processing, re-run with fresh data
+    if (pendingNotificationCheck) {
+      pendingNotificationCheck = false;
+      try {
+        const freshCells = await backendJson("/api/cells");
+        await checkNotifications(freshCells);
+      } catch (e) {
+        console.error("Failed to re-check notifications:", e.message);
+      }
+    }
   }
 }
 

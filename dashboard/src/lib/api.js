@@ -24,4 +24,5 @@ export const api = {
     request(`/discord/members/search?q=${encodeURIComponent(query)}`),
   getConfig: () => request('/config'),
   updateConfig: (payload) => request('/config', { method: 'PUT', body: payload }),
+  lookupDiscordUser: (username) => request(`/discord/lookup?username=${encodeURIComponent(username)}`),
 }

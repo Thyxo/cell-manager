@@ -104,7 +104,6 @@ export default function AddCellModal({ onClose, onSuccess }) {
         animation: 'fadeIn 0.2s ease',
         overflow: 'hidden',
       }}>
-        {/* Modal header */}
         <div style={{
           borderBottom: '1px solid var(--border)',
           padding: '16px 20px',
@@ -116,10 +115,9 @@ export default function AddCellModal({ onClose, onSuccess }) {
           <button onClick={onClose} style={{
             background: 'none', color: 'var(--text-muted)', fontSize: '18px',
             lineHeight: 1, cursor: 'pointer',
-          }}>✕</button>
+          }}>x</button>
         </div>
 
-        {/* Avatar preview */}
         {form.accountName && (
           <div style={{
             display: 'flex', justifyContent: 'center', paddingTop: '16px',
@@ -138,7 +136,6 @@ export default function AddCellModal({ onClose, onSuccess }) {
           </div>
         )}
 
-        {/* Form */}
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Row label="Cell Name">
             <Input value={form.cellName} onChange={v => set('cellName', v)} placeholder="e.g. Cell-A" />
