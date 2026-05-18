@@ -1,11 +1,13 @@
 const fetch = require("node-fetch");
 
+const DEPLOYED_BACKEND_URL = "https://backend-production-a068.up.railway.app";
+
 function getBackendUrl() {
-  const configured = process.env.BACKEND_URL?.trim();
+  const configured = process.env.BACKEND_URL?.trim().replace(/^["']|["']$/g, "");
   if (configured) return configured.replace(/\/+$/, "");
 
   if (process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT) {
-    throw new Error("BACKEND_URL is not set. Set it to your Railway backend URL.");
+    return DEPLOYED_BACKEND_URL;
   }
 
   return "http://localhost:4000";
