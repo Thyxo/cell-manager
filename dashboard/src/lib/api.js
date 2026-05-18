@@ -20,6 +20,8 @@ export const api = {
     request(`/cells/${encodeURIComponent(cellName)}`, { method: 'PUT', body: payload }),
   deleteCell: (cellName) =>
     request(`/cells/${encodeURIComponent(cellName)}`, { method: 'DELETE' }),
+  searchDiscordMembers: (query) =>
+    request(`/discord/members/search?q=${encodeURIComponent(query)}`),
   getConfig: () => request('/config'),
   updateConfig: (payload) => request('/config', { method: 'PUT', body: payload }),
 }

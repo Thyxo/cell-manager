@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const fetch = require("node-fetch");
+const { backendJson } = require("../lib/backend");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,17 +17,11 @@ module.exports = {
     const daysLeft = interaction.options.getInteger("days");
 
     try {
-      const res = await fetch(
-        `${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells/${encodeURIComponent(cellName)}/days`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ daysLeft }),
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update cell");
+      const data = await backendJson(`/api/cells/${encodeURIComponent(cellName)}/days`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daysLeft }),
+      });
 
       const embed = new EmbedBuilder()
         .setColor(0x0099ff)

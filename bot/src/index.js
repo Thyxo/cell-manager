@@ -1,9 +1,9 @@
 require("dotenv").config();
 const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
 const { io } = require("socket.io-client");
-const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");
+const { backendJson, getBackendUrl } = require("./lib/backend");
 
 // Discord client
 const client = new Client({
@@ -37,13 +37,20 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 // Socket.IO — listen for live cell updates → check notifications
-const socket = io(process.env.BACKEND_URL || "http://localhost:4000");
+let socket = null;
+try {
+  socket = io(getBackendUrl());
+} catch (err) {
+  console.error(`Backend config error: ${err.message}`);
+}
 
-socket.on("connect", () => console.log("🔗 Bot connected to backend socket"));
+if (socket) {
+  socket.on("connect", () => console.log("🔗 Bot connected to backend socket"));
 
-socket.on("cells:updated", async (cells) => {
-  await checkNotifications(cells);
-});
+  socket.on("cells:updated", async (cells) => {
+    await checkNotifications(cells);
+  });
+}
 
 // Notification check logic
 const NOTIFICATION_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
@@ -55,8 +62,7 @@ async function checkNotifications(cells) {
   isProcessingNotifications = true;
 
   try {
-    const configRes = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/config`);
-    const config = await configRes.json();
+    const config = await backendJson("/api/config");
     const threshold = config.notificationThreshold ?? 2;
     const mode = config.notificationMode ?? "dm";
     const channelId = config.notificationChannelId;
@@ -85,10 +91,7 @@ async function checkNotifications(cells) {
           });
         }
         // Mark as notified using the dedicated endpoint (no socket emit, no data overwrite)
-        await fetch(
-          `${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells/${encodeURIComponent(cell.cellName)}/notified`,
-          { method: "PATCH" }
-        );
+        await backendJson(`/api/cells/${encodeURIComponent(cell.cellName)}/notified`, { method: "PATCH" });
         console.log(`📨 Notified ${cell.discordUserId} for cell ${cell.cellName}`);
       } catch (e) {
         console.error(`Failed to notify for ${cell.cellName}:`, e.message);

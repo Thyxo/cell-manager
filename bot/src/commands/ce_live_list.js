@@ -1,14 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const fetch = require("node-fetch");
+const { backendJson } = require("../lib/backend");
 
 let intervalId = null;
 let liveChannelId = null;
 let liveMessageId = null;
 
 async function buildEmbeds() {
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
-  const res = await fetch(`${backendUrl}/api/cells`);
-  const cells = await res.json();
+  const cells = await backendJson("/api/cells");
 
   if (!cells.length) return null;
 

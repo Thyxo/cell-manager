@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 
 const cellRoutes = require("./routes/cells");
 const configRoutes = require("./routes/config");
+const discordRoutes = require("./routes/discord");
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,7 @@ app.use((req, _res, next) => {
 // Routes
 app.use("/api/cells", cellRoutes);
 app.use("/api/config", configRoutes);
+app.use("/api/discord", discordRoutes);
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 

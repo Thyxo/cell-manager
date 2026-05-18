@@ -40,6 +40,8 @@ npm run dev
 PORT=4000
 MONGODB_URI=mongodb://localhost:27017/minecraft-cells
 DASHBOARD_URL=http://localhost:3000
+DISCORD_TOKEN=your_bot_token_here
+DISCORD_GUILD_ID=your_server_id_here
 ```
 
 ---
@@ -153,6 +155,11 @@ Discord Bot ──/add_cell──► Backend API ──► MongoDB
 ### Backend → [Railway](https://railway.app)
 - Set env vars in Railway dashboard
 - Provision a MongoDB plugin or use MongoDB Atlas
+- Required env vars:
+  - `MONGODB_URI`
+  - `DASHBOARD_URL=https://your-dashboard.vercel.app`
+  - `DISCORD_TOKEN`
+  - `DISCORD_GUILD_ID`
 
 ### Dashboard → [Vercel](https://vercel.com)
 - Set `VITE_API_URL=https://your-backend.railway.app/api`
@@ -160,6 +167,7 @@ Discord Bot ──/add_cell──► Backend API ──► MongoDB
 
 ### Bot → Railway / VPS
 - Set env vars
+- Set `BACKEND_URL=https://your-backend.railway.app` in the bot service. `localhost` only works when all services run on your own machine.
 - Run `npm run register` once to register commands
 - Then `npm start`
 

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const fetch = require("node-fetch");
+const { backendJson } = require("../lib/backend");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -35,14 +35,11 @@ module.exports = {
     };
 
     try {
-      const res = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells`, {
+      await backendJson("/api/cells", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create cell");
 
       const embed = new EmbedBuilder()
         .setColor(0x00cc66)

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const fetch = require("node-fetch");
+const { backendJson } = require("../lib/backend");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,8 +10,7 @@ module.exports = {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      const res = await fetch(`${process.env.BACKEND_URL || "http://localhost:4000"}/api/cells`);
-      const cells = await res.json();
+      const cells = await backendJson("/api/cells");
 
       if (!cells.length) {
         return interaction.editReply({ content: "📭 No cells registered yet." });

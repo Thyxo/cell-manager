@@ -27,7 +27,20 @@ router.get("/:cellName", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { cellName, accountName, rank, block, daysLeft, discordUser, discordUserId } = req.body;
-    const cell = new Cell({ cellName, accountName, rank, block, daysLeft, discordUser, discordUserId });
+    if (!discordUserId) {
+      return res.status(400).json({ error: "Please select a Discord user from the server list." });
+    }
+
+    const normalizedDiscordUser = discordUser || `<@${discordUserId}>`;
+    const cell = new Cell({
+      cellName,
+      accountName,
+      rank,
+      block,
+      daysLeft,
+      discordUser: normalizedDiscordUser,
+      discordUserId,
+    });
     await cell.save();
     const cells = await Cell.find({}).sort({ daysLeft: 1 });
     req.io.emit("cells:updated", cells);
