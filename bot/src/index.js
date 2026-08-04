@@ -53,7 +53,7 @@ if (socket) {
 }
 
 // Notification check logic
-const NOTIFICATION_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
+const NOTIFICATION_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours
 let isProcessingNotifications = false;
 let pendingNotificationCheck = false;
 
@@ -78,9 +78,9 @@ async function checkNotifications(cells) {
     for (const cell of cells) {
       if (cell.daysLeft > threshold) continue;
       if (!cell.discordUserId) continue;
-      if (cell.notified) continue;
 
-      // Check cooldown - skip if notified less than 5 hours ago
+      // Re-notify on a cooldown as long as daysLeft hasn't been updated,
+      // instead of stopping after the first notification.
       if (cell.lastNotified) {
         const elapsed = Date.now() - new Date(cell.lastNotified).getTime();
         if (elapsed < NOTIFICATION_COOLDOWN_MS) continue;

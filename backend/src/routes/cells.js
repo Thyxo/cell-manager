@@ -90,10 +90,12 @@ router.patch("/:cellName/notified", async (req, res) => {
 // PUT update full cell
 router.put("/:cellName", async (req, res) => {
   try {
-    // When editing a cell's real data, reset notified so user gets warned again if still urgent
+    // When editing a cell's real data, reset notification state so the cooldown
+    // restarts and the user gets warned again promptly if still urgent
     const update = { ...req.body };
     if (update.daysLeft !== undefined) {
       update.notified = false;
+      update.lastNotified = null;
     }
     const cell = await Cell.findOneAndUpdate(
       { cellName: req.params.cellName },
