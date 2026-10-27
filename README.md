@@ -42,7 +42,10 @@ MONGODB_URI=mongodb://localhost:27017/minecraft-cells
 DASHBOARD_URL=http://localhost:3000
 DISCORD_TOKEN=your_bot_token_here
 DISCORD_GUILD_ID=your_server_id_here
+API_KEY=a_long_random_secret
 ```
+
+`API_KEY` protects every change (create/update/delete cells, config) and the Discord member search with an `x-api-key` header. Leave it empty to keep the API open (not recommended — the backend URL is public). Generate one with `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`.
 
 ---
 
@@ -83,6 +86,7 @@ npm run dev
 DISCORD_TOKEN=your_bot_token_here
 DISCORD_CLIENT_ID=your_application_id_here
 BACKEND_URL=http://localhost:4000
+BACKEND_API_KEY=same_value_as_backend_API_KEY
 ```
 
 #### Discord Bot Permissions needed:
@@ -160,6 +164,9 @@ Discord Bot ──/add_cell──► Backend API ──► MongoDB
   - `DASHBOARD_URL=https://your-dashboard.vercel.app`
   - `DISCORD_TOKEN`
   - `DISCORD_GUILD_ID`
+  - `API_KEY` (recommended)
+
+The dashboard asks for the API key the first time a change is made and remembers it in that browser. The key is never put into the Vercel build.
 
 ### Dashboard → [Vercel](https://vercel.com)
 - Set `VITE_API_URL=https://your-backend.railway.app/api`
@@ -167,7 +174,7 @@ Discord Bot ──/add_cell──► Backend API ──► MongoDB
 
 ### Bot → Railway / VPS
 - Set env vars
-- Set `BACKEND_URL=https://your-backend.railway.app` in the bot service. `localhost` only works when all services run on your own machine.
+- Set `BACKEND_URL=https://your-backend.railway.app` and `BACKEND_API_KEY` (same as the backend's `API_KEY`) in the bot service. `localhost` only works when all services run on your own machine.
 - Run `npm run register` once to register commands
 - Then `npm start`
 

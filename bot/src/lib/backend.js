@@ -17,12 +17,17 @@ function backendUrl(path = "") {
   return `${getBackendUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function apiKeyHeader() {
+  const key = (process.env.BACKEND_API_KEY || process.env.API_KEY || "").trim();
+  return key ? { "x-api-key": key } : {};
+}
+
 async function backendJson(path, options = {}) {
   const url = backendUrl(path);
   let res;
 
   try {
-    res = await fetch(url, options);
+    res = await fetch(url, { ...options, headers: { ...(options.headers || {}), ...apiKeyHeader() } });
   } catch (err) {
     throw new Error(`Could not reach backend at ${getBackendUrl()}. ${err.message}`);
   }

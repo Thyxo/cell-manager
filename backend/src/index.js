@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const cellRoutes = require("./routes/cells");
 const configRoutes = require("./routes/config");
 const discordRoutes = require("./routes/discord");
+const { requireApiKey } = require("./middleware/apiKey");
 
 const app = express();
 const server = http.createServer(app);
@@ -28,10 +29,14 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Routes
-app.use("/api/cells", cellRoutes);
-app.use("/api/config", configRoutes);
-app.use("/api/discord", discordRoutes);
+// Routes — writes (and Discord member search) require API_KEY when it is set
+app.use("/api/cells", requireApiKey(), cellRoutes);
+app.use("/api/config", requireApiKey(), configRoutes);
+app.use("/api/discord", requireApiKey({ protectReads: true }), discordRoutes);
+
+if (!process.env.API_KEY) {
+  console.warn("⚠️  API_KEY is not set — anyone can change or delete cells");
+}
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
